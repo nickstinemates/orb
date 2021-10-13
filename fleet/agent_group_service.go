@@ -10,6 +10,7 @@ package fleet
 
 import (
 	"context"
+	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
@@ -196,4 +197,22 @@ func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, ag
 	}
 	ag.MatchingAgents = res
 	return ag, err
+}
+
+func (svc fleetService) AgentGroupsStatistics(ctx context.Context, token string) (GroupsStatistics, error) {
+	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return GroupsStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	total, err := svc.agentGroupRepository.RetrieveTotalGroupsByOwner(ctx, res.GetId())
+	if err != nil{
+		return GroupsStatistics{}, err
+	}
+
+	statistic := GroupsStatistics{
+		TotalGroups:   total,
+	}
+
+	return statistic, nil
 }

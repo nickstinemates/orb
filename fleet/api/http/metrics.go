@@ -18,6 +18,10 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
+func (m metricsMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (fleet.GroupsStatistics, error) {
+	return m.svc.AgentGroupsStatistics(ctx, token)
+}
+
 func (m metricsMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
 	return m.svc.ViewAgentBackend(ctx, token, name)
 }

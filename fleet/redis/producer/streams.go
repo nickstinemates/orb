@@ -28,6 +28,10 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
+func (es eventStore) AgentGroupsStatistics(ctx context.Context, token string) (fleet.GroupsStatistics, error) {
+	return es.svc.AgentGroupsStatistics(ctx, token)
+}
+
 func (es eventStore) ViewAgentBackend(ctx context.Context, token string, name string) (interface{}, error) {
 	return es.svc.ViewAgentBackend(ctx, token, name)
 }

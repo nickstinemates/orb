@@ -460,3 +460,45 @@ func TestValidateAgentGroup(t *testing.T) {
 	}
 
 }
+
+func TestAgentsStatistics(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+
+	thingsServer := newThingsServer(newThingsService(users))
+	fleetService := newService(users, thingsServer.URL)
+
+	var groups []fleet.AgentGroup
+	for i := 0; i < limit; i++ {
+		ag, err := createAgentGroup(t, fmt.Sprintf("my-agent-%d", i), fleetService)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+		groups = append(groups, ag)
+	}
+
+	cases := map[string]struct {
+		token      string
+		statistics fleet.GroupsStatistics
+		err        error
+	}{
+		"retrieve all agents states summary": {
+			token: token,
+			statistics: fleet.GroupsStatistics{
+				TotalGroups: limit,
+			},
+			err: nil,
+		},
+		"retrieve all agents states summary with a invalid token": {
+			token: invalidToken,
+			statistics: fleet.GroupsStatistics{},
+			err: fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			statistics, err := fleetService.AgentGroupsStatistics(context.Background(), tc.token)
+			assert.Equal(t, tc.statistics, statistics, fmt.Sprintf("%s: expected %v got %v", desc, tc.statistics, statistics))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
+
+	}
+}

@@ -19,6 +19,15 @@ type agentGroupRepositoryMock struct {
 	agentGroupMock map[string]fleet.AgentGroup
 }
 
+func (a *agentGroupRepositoryMock) RetrieveTotalGroupsByOwner(background context.Context, owner string) (int, error) {
+	var count int
+	for _, v := range a.agentGroupMock {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+	return count, nil}
+
 func NewAgentGroupRepository() fleet.AgentGroupRepository {
 	return &agentGroupRepositoryMock{
 		agentGroupMock: make(map[string]fleet.AgentGroup),

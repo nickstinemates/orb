@@ -18,6 +18,20 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
+func (l loggingMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (_ fleet.GroupsStatistics, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: agent_groups_statistics",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: agent_groups_statistics",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.AgentGroupsStatistics(ctx, token)
+}
+
 func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, name string) (_ interface{}, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

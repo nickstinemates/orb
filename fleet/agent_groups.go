@@ -22,6 +22,10 @@ type AgentGroup struct {
 	MatchingAgents types.Metadata
 }
 
+type GroupsStatistics struct {
+	TotalGroups   int
+}
+
 type PageAgentGroup struct {
 	PageMetadata
 	AgentGroups []AgentGroup
@@ -64,6 +68,8 @@ type AgentGroupService interface {
 	RemoveAgentGroup(ctx context.Context, token string, id string) error
 	// ValidateAgentGroup validate AgentGroup
 	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
+	// AgentGroupsStatistics retrieve total agent groups by owner
+	AgentGroupsStatistics(ctx context.Context, token string) (GroupsStatistics, error)
 }
 
 type AgentGroupRepository interface {
