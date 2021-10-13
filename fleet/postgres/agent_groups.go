@@ -336,6 +336,31 @@ func (a agentGroupRepository) Save(ctx context.Context, group fleet.AgentGroup) 
 	return id, nil
 }
 
+func (r agentGroupRepository) RetrieveTotalGroupsByOwner(ctx context.Context, owner string) (int, error) {
+	q := fmt.Sprintf(`SELECT COUNT(*) FROM agent_groups WHERE mf_owner_id = :mf_owner_id;`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return 0, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var count int
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return 0, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+	}
+
+	return count, nil
+}
+
 type dbAgentGroup struct {
 	ID             string           `db:"id"`
 	Name           types.Identifier `db:"name"`

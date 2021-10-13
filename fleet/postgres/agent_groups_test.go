@@ -376,6 +376,61 @@ func TestAgentGroupDelete(t *testing.T) {
 	}
 }
 
+func TestTotalAgentGroupsRetrieval(t *testing.T) {
+
+	dbMiddleware := postgres.NewDatabase(db)
+	agentGroupRepo := postgres.NewAgentGroupRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	chID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		nameID, err := types.NewIdentifier(fmt.Sprintf("ue-agent-group-%d", i))
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+		group := fleet.AgentGroup{
+			Name:        nameID,
+			Description: "a example",
+			MFOwnerID:   oID.String(),
+			MFChannelID: chID.String(),
+			Tags:        types.Tags{"testkey": "testvalue"},
+		}
+
+		ag, err := agentGroupRepo.Save(context.Background(), group)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+		fmt.Sprint(ag)
+	}
+
+	cases := map[string]struct {
+		owner       string
+		totalGroups int
+	}{
+		"retrieve total agent groups by owner": {
+			owner:       oID.String(),
+			totalGroups: 10,
+		},
+		"retrieve total agent groups with wrong owner": {
+			owner:       invalidID.String(),
+			totalGroups: 0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			totalGroups, err := agentGroupRepo.RetrieveTotalGroupsByOwner(context.Background(), tc.owner)
+			assert.Equal(t, tc.totalGroups, totalGroups, fmt.Sprintf("%s: expected summary %d got %d\n", desc, tc.totalGroups,totalGroups))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
 func testSortAgentGroups(t *testing.T, pm fleet.PageMetadata, ags []fleet.AgentGroup) {
 	switch pm.Order {
 	case "name":

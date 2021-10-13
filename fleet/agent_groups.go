@@ -80,4 +80,6 @@ type AgentGroupRepository interface {
 	Update(ctx context.Context, ownerID string, group AgentGroup) (AgentGroup, error)
 	// Delete a existing agent group by owner and id
 	Delete(ctx context.Context, groupID string, ownerID string) error
+	// RetrieveTotalGroupsByOwner retrieves total of agent groups by owner
+	RetrieveTotalGroupsByOwner(background context.Context, owner string) (int, error)
 }
