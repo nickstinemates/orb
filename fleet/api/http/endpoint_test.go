@@ -1421,6 +1421,54 @@ func TestAgentBackendTaps(t *testing.T) {
 	}
 }
 
+func TestAgentGroupStatistics(t *testing.T) {
+	cli := newClientServer(t)
+
+	for i := 0; i < limit; i++ {
+		_, err := createAgentGroup(t, fmt.Sprintf("ue-agent-group-%d", i), &cli)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	}
+
+	cases := map[string]struct {
+		auth       string
+		status     int
+		statistics agentGroupsStatisticsRes
+	}{
+		"retrieve agent groups statistics by owner": {
+			auth:   token,
+			status: http.StatusOK,
+			statistics: agentGroupsStatisticsRes{
+				TotalAgentGroups: limit,
+			},
+		},
+		"retrieve agent groups statistics with a invalid token": {
+			auth:   invalidToken,
+			status: http.StatusUnauthorized,
+			statistics: agentGroupsStatisticsRes{
+				TotalAgentGroups: 0,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf("%s/agent_groups/statistics/", cli.server.URL),
+				contentType: contentType,
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var statistics agentGroupsStatisticsRes
+			json.NewDecoder(res.Body).Decode(&statistics)
+			assert.Equal(t, res.StatusCode, tc.status, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected total %d got %d", desc, tc.statistics, statistics))
+		})
+	}
+}
+
 func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.AgentGroup, error) {
 	t.Helper()
 	agCopy := agentGroup
@@ -1511,4 +1559,8 @@ type updateAgentReq struct {
 	token string
 	Name  string     `json:"name,omitempty"`
 	Tags  types.Tags `json:"orb_tags"`
+}
+
+type agentGroupsStatisticsRes struct {
+	TotalAgentGroups int `json:"total_agents_groups"`
 }

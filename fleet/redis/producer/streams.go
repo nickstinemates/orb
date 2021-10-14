@@ -28,7 +28,7 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
-func (es eventStore) AgentGroupsStatistics(ctx context.Context, token string) (fleet.GroupsStatistics, error) {
+func (es eventStore) AgentGroupsStatistics(ctx context.Context, token string) (int, error) {
 	return es.svc.AgentGroupsStatistics(ctx, token)
 }
 

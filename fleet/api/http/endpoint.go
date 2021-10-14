@@ -417,3 +417,21 @@ func listAgentBackendsEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}, nil
 	}
 }
+
+func AgentGroupsStatisticsEndpoint(svc fleet.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(agentsStatisticsReq)
+		if err := req.validate(); err != nil {
+			return agentGroupsStatisticsRes{}, err
+		}
+
+		statistics, err := svc.AgentGroupsStatistics(ctx, req.token)
+		if err != nil {
+			return agentGroupsStatisticsRes{}, err
+		}
+
+		return agentGroupsStatisticsRes{
+			TotalAgentGroups:   statistics,
+		}, nil
+	}
+}

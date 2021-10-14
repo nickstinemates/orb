@@ -18,7 +18,7 @@ type metricsMiddleware struct {
 	svc     fleet.Service
 }
 
-func (m metricsMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (fleet.GroupsStatistics, error) {
+func (m metricsMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (int, error) {
 	return m.svc.AgentGroupsStatistics(ctx, token)
 }
 

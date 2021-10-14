@@ -205,3 +205,19 @@ func (s agentBackendsRes) Headers() map[string]string {
 func (s agentBackendsRes) Empty() bool {
 	return false
 }
+
+type agentGroupsStatisticsRes struct {
+	TotalAgentGroups int `json:"total_agents_groups"`
+}
+
+func (s agentGroupsStatisticsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s agentGroupsStatisticsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s agentGroupsStatisticsRes) Empty() bool {
+	return false
+}

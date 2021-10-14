@@ -69,7 +69,7 @@ type AgentGroupService interface {
 	// ValidateAgentGroup validate AgentGroup
 	ValidateAgentGroup(ctx context.Context, token string, s AgentGroup) (AgentGroup, error)
 	// AgentGroupsStatistics retrieve total agent groups by owner
-	AgentGroupsStatistics(ctx context.Context, token string) (GroupsStatistics, error)
+	AgentGroupsStatistics(ctx context.Context, token string) (int, error)
 }
 
 type AgentGroupRepository interface {

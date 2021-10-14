@@ -18,7 +18,7 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (_ fleet.GroupsStatistics, err error) {
+func (l loggingMiddleware) AgentGroupsStatistics(ctx context.Context, token string) (_ int, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: agent_groups_statistics",

@@ -199,20 +199,16 @@ func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, ag
 	return ag, err
 }
 
-func (svc fleetService) AgentGroupsStatistics(ctx context.Context, token string) (GroupsStatistics, error) {
+func (svc fleetService) AgentGroupsStatistics(ctx context.Context, token string) (int, error) {
 	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
-		return GroupsStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+		return 0, errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}
 
 	total, err := svc.agentGroupRepository.RetrieveTotalGroupsByOwner(ctx, res.GetId())
 	if err != nil{
-		return GroupsStatistics{}, err
+		return 0, err
 	}
 
-	statistic := GroupsStatistics{
-		TotalGroups:   total,
-	}
-
-	return statistic, nil
+	return total, nil
 }
