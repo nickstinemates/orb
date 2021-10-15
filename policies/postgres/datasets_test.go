@@ -10,6 +10,7 @@ package postgres_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -370,6 +371,61 @@ func TestMultiDatasetRetrieval(t *testing.T) {
 			if size > 0 {
 				testSortDataset(t, tc.pageMetadata, pageDataset.Datasets)
 			}
+		})
+	}
+}
+
+func TestTotalDatasetRetrieval(t *testing.T) {
+
+	dbMiddleware := postgres.NewDatabase(db)
+	datasetRepo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "dataset_name"
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		th := policies.Dataset{
+			MFOwnerID:   oID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.Tags = tags
+
+		_, err = datasetRepo.SaveDataset(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	cases := map[string]struct {
+		owner       string
+		totalDatasets int
+	}{
+		"retrieve total datasets by owner": {
+			owner:       oID.String(),
+			totalDatasets: 10,
+		},
+		"retrieve total datasets with wrong owner": {
+			owner:       invalidID.String(),
+			totalDatasets: 0,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			totalAgents, err := datasetRepo.RetrieveTotalDatasetByOwner(context.Background(), tc.owner)
+			assert.Equal(t, tc.totalDatasets, totalAgents, fmt.Sprintf("%s: expected summary %d got %d\n", desc, tc.totalDatasets,totalAgents))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
 		})
 	}
 }

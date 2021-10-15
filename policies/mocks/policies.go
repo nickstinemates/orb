@@ -198,3 +198,14 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context,
 	}
 	return pageDataset, nil
 }
+
+func (m *mockPoliciesRepository) RetrieveTotalDatasetByOwner(ctx context.Context, owner string) (int, error) {
+
+	var count int
+	for _, v := range m.ddb {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+	return count, nil
+}

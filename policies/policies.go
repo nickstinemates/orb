@@ -143,4 +143,7 @@ type Repository interface {
 
 	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
 	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
+
+	// RetrieveTotalDatasetByOwner retrieves total of datasets by owner
+	RetrieveTotalDatasetByOwner(ctx context.Context, owner string) (int, error)
 }
