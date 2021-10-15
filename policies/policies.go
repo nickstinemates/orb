@@ -40,6 +40,10 @@ type PolicyInDataset struct {
 	DatasetID string
 }
 
+type DatasetStatistics struct {
+	TotalDatasets   int
+}
+
 type Page struct {
 	PageMetadata
 	Policies []Policy
@@ -97,6 +101,10 @@ type Service interface {
 
 	// ListDatasets retrieve a list of Dataset by owner
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
+
+	// DatasetsStatistics retrieve total datasets by owner
+	DatasetsStatistics(ctx context.Context, token string) (DatasetStatistics, error)
+
 }
 
 type Repository interface {

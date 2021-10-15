@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/mainflux/mainflux"
+	"github.com/ns1labs/orb/fleet"
 	flmocks "github.com/ns1labs/orb/fleet/mocks"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
@@ -722,6 +723,44 @@ func TestListDataset(t *testing.T) {
 			testSortDataset(t, tc.pm, page.Datasets)
 		})
 
+	}
+}
+
+func TestDatasetStatistics(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	var datasetList []policies.Dataset
+	for i := 0; i < limit; i++ {
+		pl := createDataset(t, svc, fmt.Sprintf("dataset-%d", i))
+		datasetList = append(datasetList, pl)
+	}
+
+	cases := map[string]struct {
+		token      string
+		statistics policies.DatasetStatistics
+		err        error
+	}{
+		"retrieve dataset statistics": {
+			token: token,
+			statistics: policies.DatasetStatistics{
+				TotalDatasets: limit,
+			},
+			err: nil,
+		},
+		"retrieve dataset statistics with a wrong owner": {
+			token: invalidToken,
+			statistics: policies.DatasetStatistics{},
+			err: fleet.ErrUnauthorizedAccess,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			statistics, err := svc.DatasetsStatistics(context.Background(), tc.token)
+			assert.Equal(t, tc.statistics, statistics, fmt.Sprintf("%s: expected %v got %v", desc, tc.statistics, statistics))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 

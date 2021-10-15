@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies/backend"
@@ -320,4 +321,22 @@ func (s policiesService) ListDatasets(ctx context.Context, token string, pm Page
 		return PageDataset{}, err
 	}
 	return s.repo.RetrieveAllDatasetsByOwner(ctx, ownerID, pm)
+}
+
+func (s policiesService) DatasetsStatistics(ctx context.Context, token string) (DatasetStatistics, error) {
+	res, err := s.auth.Identify(ctx, &mainflux.Token{Value: token})
+	if err != nil {
+		return DatasetStatistics{}, errors.Wrap(errors.ErrUnauthorizedAccess, err)
+	}
+
+	total, err := s.repo.RetrieveTotalDatasetByOwner(ctx, res.GetId())
+	if err != nil{
+		return DatasetStatistics{}, err
+	}
+
+	statistic := DatasetStatistics{
+		TotalDatasets:   total,
+	}
+
+	return statistic, nil
 }

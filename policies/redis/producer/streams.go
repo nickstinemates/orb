@@ -265,3 +265,7 @@ func (e eventStore) ListDatasets(ctx context.Context, token string, pm policies.
 func (e eventStore) ViewDatasetByID(ctx context.Context, token string, datasetID string) (policies.Dataset, error) {
 	return e.svc.ViewDatasetByID(ctx, token, datasetID)
 }
+
+func (e eventStore) DatasetsStatistics(ctx context.Context, token string) (policies.DatasetStatistics, error) {
+	return e.svc.DatasetsStatistics(ctx, token)
+}
