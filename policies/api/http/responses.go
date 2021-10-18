@@ -6,6 +6,7 @@ package http
 
 import (
 	"github.com/ns1labs/orb/pkg/types"
+	"github.com/ns1labs/orb/policies"
 	"net/http"
 	"time"
 )
@@ -184,4 +185,22 @@ type pageRes struct {
 	Limit  uint64 `json:"limit"`
 	Order  string `json:"order"`
 	Dir    string `json:"direction"`
+}
+
+type datasetStatisticsRes struct {
+	TotalDatasets         int                             `json:"total_datasets"`
+	DatasetsPerPolicy     []policies.DatasetPerPolicy    `json:"datasets_per_policy"`
+	DatasetsPerAgentGroup []policies.DatasetPerAgentGroup `json:"datasets_per_agent_group"`
+}
+
+func (s datasetStatisticsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s datasetStatisticsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s datasetStatisticsRes) Empty() bool {
+	return false
 }

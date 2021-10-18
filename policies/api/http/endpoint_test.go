@@ -1209,6 +1209,76 @@ func TestListDataset(t *testing.T) {
 	}
 }
 
+func TestDatasetStatistics(t *testing.T) {
+	cli := newClientServer(t)
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	agentGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+	for i := 0; i < limit; i++ {
+		t.Helper()
+		ID, err := uuid.NewV4()
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+
+		dataset := policies.Dataset{
+			ID:           ID.String(),
+			PolicyID:     policyID.String(),
+			AgentGroupID: agentGroupID.String(),
+		}
+		dataset.Name, err = types.NewIdentifier(fmt.Sprintf("dataset-%d", i))
+
+		_, err = cli.service.AddDataset(context.Background(), token, dataset)
+		require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
+	}
+
+	var dtPerAgGroup []policies.DatasetPerAgentGroup
+	var dtPerPolicy []policies.DatasetPerPolicy
+
+	cases := map[string]struct {
+		status int
+		auth   string
+		res    policies.DatasetStatistics
+	}{
+		"retrieve agents statistics by owner": {
+			status: http.StatusOK,
+			auth:   token,
+			res: policies.DatasetStatistics{
+				DatasetPerPolicy:     append(dtPerPolicy, policies.DatasetPerPolicy{PolicyID: policyID.String(), TotalDatasets: limit}),
+				DatasetPerAgentGroup: append(dtPerAgGroup, policies.DatasetPerAgentGroup{AgentGroupID: agentGroupID.String(), TotalDatasets: limit}),
+				TotalDatasets:        limit,
+			},
+		},
+		"retrieve agents statistics with invalid token": {
+			status: http.StatusUnauthorized,
+			auth:   invalidToken,
+			res: policies.DatasetStatistics{
+				DatasetPerPolicy:     dtPerPolicy,
+				DatasetPerAgentGroup: dtPerAgGroup,
+				TotalDatasets:        0,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client:      cli.server.Client(),
+				method:      http.MethodGet,
+				url:         fmt.Sprintf("%s/agents/statistics/", cli.server.URL),
+				token:       tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			var body datasetStatisticsRes
+			json.NewDecoder(res.Body).Decode(&body)
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()
@@ -1297,4 +1367,10 @@ type datasetPageRes struct {
 	Offset   uint64       `json:"offset"`
 	Limit    uint64       `json:"limit"`
 	Datasets []datasetRes `json:"datasets"`
+}
+
+type datasetStatisticsRes struct {
+	TotalDatasets         int                             `json:"total_datasets"`
+	DatasetsPerPolicy     []policies.DatasetPerPolicy    `json:"datasets_per_policy"`
+	DatasetsPerAgentGroup []policies.DatasetPerAgentGroup `json:"datasets_per_agent_group"`
 }

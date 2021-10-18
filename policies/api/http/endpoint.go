@@ -375,3 +375,23 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func DatasetStatisticsEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(datasetStatisticsReq)
+		if err := req.validate(); err != nil {
+			return datasetStatisticsRes{}, err
+		}
+
+		statistics, err := svc.DatasetsStatistics(ctx, req.token)
+		if err != nil {
+			return datasetStatisticsRes{}, err
+		}
+
+		return datasetStatisticsRes{
+			TotalDatasets:         statistics.TotalDatasets,
+			DatasetsPerAgentGroup: statistics.DatasetPerAgentGroup,
+			DatasetsPerPolicy:     statistics.DatasetPerPolicy,
+		}, nil
+	}
+}
