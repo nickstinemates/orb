@@ -528,6 +528,67 @@ func (r policiesRepository) RetrieveTotalDatasetByOwner(ctx context.Context, own
 	return count, nil
 }
 
+func (r policiesRepository) RetrieveTotalDatasetByPolicy(ctx context.Context, owner string) ([]policies.DatasetPerPolicy, error) {
+	q := fmt.Sprintf(`SELECT count(*), agent_policy_id FROM datasets WHERE mf_owner_id = :mf_owner_id GROUP BY agent_policy_id`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return []policies.DatasetPerPolicy{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var dtPerPolicy []policies.DatasetPerPolicy
+
+	for rows.Next() {
+		db := dbDatasetPerPolicy{}
+		if err := rows.StructScan(&db); err != nil {
+			return []policies.DatasetPerPolicy{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		dt, err := toDatasetPerPolicy(db)
+		if err != nil {
+			return []policies.DatasetPerPolicy{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dtPerPolicy = append(dtPerPolicy, dt)
+	}
+
+	return dtPerPolicy, nil
+}
+
+func (r policiesRepository) RetrieveTotalDatasetByAgentGroup(ctx context.Context, owner string) ([]policies.DatasetPerAgentGroup, error) {
+	q := fmt.Sprintf(`SELECT count(*), agent_group_id FROM datasets WHERE mf_owner_id = :mf_owner_id GROUP BY agent_group_id`)
+
+	params := map[string]interface{}{
+		"mf_owner_id": owner,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return []policies.DatasetPerAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	var dtPerAgGroup []policies.DatasetPerAgentGroup
+
+	for rows.Next() {
+		db := dbDatasetPerAgentGroup{}
+		if err := rows.StructScan(&db); err != nil {
+			return []policies.DatasetPerAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		dt, err := toDatasetPerAgentGroup(db)
+		if err != nil {
+			return []policies.DatasetPerAgentGroup{}, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		dtPerAgGroup = append(dtPerAgGroup, dt)
+	}
+
+	return dtPerAgGroup, nil
+}
 
 type dbPolicy struct {
 	ID          string           `db:"id"`
@@ -706,4 +767,35 @@ func total(ctx context.Context, db Database, query string, params interface{}) (
 		}
 	}
 	return total, nil
+}
+
+type dbDatasetPerAgentGroup struct {
+	AgentGroupID  string `db:"agent_group_id"`
+	TotalDatasets int    `db:"count"`
+}
+
+func toDatasetPerAgentGroup(dba dbDatasetPerAgentGroup) (policies.DatasetPerAgentGroup, error) {
+
+	dt := policies.DatasetPerAgentGroup{
+		AgentGroupID:  dba.AgentGroupID,
+		TotalDatasets: dba.TotalDatasets,
+	}
+
+	return dt, nil
+}
+
+type dbDatasetPerPolicy struct {
+	PolicyID      string `db:"agent_policy_id"`
+	TotalDatasets int    `db:"count"`
+}
+
+func toDatasetPerPolicy(dba dbDatasetPerPolicy) (policies.DatasetPerPolicy, error) {
+
+	dt := policies.DatasetPerPolicy{
+		PolicyID:      dba.PolicyID,
+		TotalDatasets: dba.TotalDatasets,
+	}
+
+	return dt, nil
+
 }

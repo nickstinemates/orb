@@ -430,6 +430,134 @@ func TestTotalDatasetRetrieval(t *testing.T) {
 	}
 }
 
+func TestTotalDatasetsByPolicy(t *testing.T) {
+
+	dbMiddleware := postgres.NewDatabase(db)
+	datasetRepo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	policyID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "dataset_name"
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		th := policies.Dataset{
+			MFOwnerID: oID.String(),
+			PolicyID:  policyID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.Tags = tags
+
+		_, err = datasetRepo.SaveDataset(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	var dtPerPolicy []policies.DatasetPerPolicy
+
+	cases := map[string]struct {
+		owner             string
+		datasetsPerPolicy []policies.DatasetPerPolicy
+	}{
+		"retrieve list of total datasets using each policy": {
+			owner:             oID.String(),
+			datasetsPerPolicy: append(dtPerPolicy, policies.DatasetPerPolicy{
+				PolicyID:      policyID.String(),
+				TotalDatasets: 10,
+			}),
+		},
+		"retrieve total datasets with wrong owner": {
+			owner:             invalidID.String(),
+			datasetsPerPolicy: dtPerPolicy,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			datasetsPerPolicy, err := datasetRepo.RetrieveTotalDatasetByPolicy(context.Background(), tc.owner)
+			assert.Equal(t, tc.datasetsPerPolicy, datasetsPerPolicy, fmt.Sprintf("%s: expected summary %v got %v\n", desc, tc.datasetsPerPolicy,datasetsPerPolicy))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
+func TestTotalDatasetsByAgentGroup(t *testing.T) {
+
+	dbMiddleware := postgres.NewDatabase(db)
+	datasetRepo := postgres.NewPoliciesRepository(dbMiddleware, logger)
+
+	oID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	invalidID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	agGroupID, err := uuid.NewV4()
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+
+	name := "dataset_name"
+	tagsStr := `{"region": "EU", "node_type": "dns"}`
+
+	tags := types.Tags{}
+	json.Unmarshal([]byte(tagsStr), &tags)
+
+	n := uint64(10)
+	for i := uint64(0); i < n; i++ {
+		th := policies.Dataset{
+			MFOwnerID: oID.String(),
+			AgentGroupID:  agGroupID.String(),
+		}
+
+		th.Name, err = types.NewIdentifier(fmt.Sprintf("%s-%d", name, i))
+		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
+		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		th.Tags = tags
+
+		_, err = datasetRepo.SaveDataset(context.Background(), th)
+		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+	}
+
+	var dtPerAgGroup []policies.DatasetPerAgentGroup
+
+	cases := map[string]struct {
+		owner             string
+		datasetsPerAgGroup []policies.DatasetPerAgentGroup
+	}{
+		"retrieve list of total datasets using each Agent Group": {
+			owner:             oID.String(),
+			datasetsPerAgGroup: append(dtPerAgGroup, policies.DatasetPerAgentGroup{
+				AgentGroupID:  agGroupID.String(),
+				TotalDatasets: 10,
+			}),
+		},
+		"retrieve total datasets with wrong owner": {
+			owner:             invalidID.String(),
+			datasetsPerAgGroup: dtPerAgGroup,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			datasetsPerAgGroup, err := datasetRepo.RetrieveTotalDatasetByAgentGroup(context.Background(), tc.owner)
+			assert.Equal(t, tc.datasetsPerAgGroup, datasetsPerAgGroup, fmt.Sprintf("%s: expected summary %v got %v\n", desc, tc.datasetsPerAgGroup,datasetsPerAgGroup))
+			assert.Nil(t, err, fmt.Sprintf("%s: expected no error got %d\n", desc, err))
+		})
+	}
+}
+
 func testSortDataset(t *testing.T, pm policies.PageMetadata, ags []policies.Dataset) {
 	t.Helper()
 	switch pm.Order {

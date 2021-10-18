@@ -44,6 +44,16 @@ type DatasetStatistics struct {
 	TotalDatasets   int
 }
 
+type DatasetPerPolicy struct {
+	PolicyID      string
+	TotalDatasets int
+}
+
+type DatasetPerAgentGroup struct {
+	AgentGroupID      string
+	TotalDatasets int
+}
+
 type Page struct {
 	PageMetadata
 	Policies []Policy
@@ -154,4 +164,10 @@ type Repository interface {
 
 	// RetrieveTotalDatasetByOwner retrieves total of datasets by owner
 	RetrieveTotalDatasetByOwner(ctx context.Context, owner string) (int, error)
+
+	// RetrieveTotalDatasetByPolicy retrieves total of datasets using a policy
+	RetrieveTotalDatasetByPolicy(ctx context.Context, owner string) ([]DatasetPerPolicy, error)
+
+	// RetrieveTotalDatasetByAgentGroup retrieves total of datasets using an agent group
+	RetrieveTotalDatasetByAgentGroup(ctx context.Context, owner string) ([]DatasetPerAgentGroup, error)
 }

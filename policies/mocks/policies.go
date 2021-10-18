@@ -209,3 +209,44 @@ func (m *mockPoliciesRepository) RetrieveTotalDatasetByOwner(ctx context.Context
 	}
 	return count, nil
 }
+
+func (m *mockPoliciesRepository) RetrieveTotalDatasetByPolicy(ctx context.Context, owner string) ([]policies.DatasetPerPolicy, error) {
+
+	var (
+		dtPerPolicy []policies.DatasetPerPolicy
+		count int
+	)
+
+	for _, v := range m.ddb {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+	dt := policies.DatasetPerPolicy{
+		PolicyID:   m.ddb[owner].PolicyID,
+		TotalDatasets:   count,
+	}
+	dtPerPolicy = append(dtPerPolicy, dt)
+
+	return dtPerPolicy, nil
+}
+
+func (m *mockPoliciesRepository) RetrieveTotalDatasetByAgentGroup(ctx context.Context, owner string) ([]policies.DatasetPerAgentGroup, error) {
+	var (
+		dtPerAgGroup []policies.DatasetPerAgentGroup
+		count int
+	)
+
+	for _, v := range m.ddb {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+	dt := policies.DatasetPerAgentGroup{
+		AgentGroupID:  m.ddb[owner].AgentGroupID,
+		TotalDatasets: count,
+	}
+	dtPerAgGroup = append(dtPerAgGroup, dt)
+
+	return dtPerAgGroup, nil
+}
