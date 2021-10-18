@@ -1209,6 +1209,49 @@ func TestListDataset(t *testing.T) {
 	}
 }
 
+func TestPoliciesStatistics(t *testing.T) {
+	cli := newClientServer(t)
+
+	for i := 0; i < 10; i++ {
+		createPolicy(t, &cli, fmt.Sprintf("policy-%d", i))
+	}
+
+	cases := map[string]struct {
+		status int
+		auth   string
+		res    policies.PoliciesStatistics
+	}{
+		"retrieve all policies summary": {
+			status: http.StatusOK,
+			auth:   token,
+			res: policies.PoliciesStatistics{
+				TotalPolicies: 10,
+			},
+		},
+		"retrieve policies statistics with invalid token": {
+			status: http.StatusUnauthorized,
+			auth:   invalidToken,
+			res: policies.PoliciesStatistics{
+				TotalPolicies: 10,
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: cli.server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/policies/statistics/", cli.server.URL),
+				token:  tc.auth,
+			}
+			res, err := req.make()
+			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
+		})
+	}
+}
+
 func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy {
 	t.Helper()
 	ID, err := uuid.NewV4()

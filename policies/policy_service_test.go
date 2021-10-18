@@ -511,7 +511,6 @@ func TestRemoveDataset(t *testing.T) {
 	}
 }
 
-
 func TestValidateDataset(t *testing.T) {
 	users := flmocks.NewAuthService(map[string]string{token: email})
 	svc := newService(users)
@@ -519,7 +518,7 @@ func TestValidateDataset(t *testing.T) {
 	policy := createPolicy(t, svc, "policy")
 	var nameID, _ = types.NewIdentifier("my-dataset")
 	var (
-		sinkIDsArray = []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
+		sinkIDsArray               = []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
 		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
 		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{}, Valid: true}
 		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: sinkIDsArray, Valid: true}
@@ -530,9 +529,9 @@ func TestValidateDataset(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		dataset  policies.Dataset
-		token    string
-		err      error
+		dataset policies.Dataset
+		token   string
+		err     error
 	}{
 		"validate a new dataset": {
 			dataset: dataset,
@@ -722,6 +721,37 @@ func TestListDataset(t *testing.T) {
 			testSortDataset(t, tc.pm, page.Datasets)
 		})
 
+	}
+}
+
+func TestPoliciesStatisticsSummary(t *testing.T) {
+	users := flmocks.NewAuthService(map[string]string{token: email})
+	svc := newService(users)
+
+	for i := 0; i < 10; i++ {
+		createPolicy(t, svc, fmt.Sprintf("policy-%d", i))
+	}
+
+	cases := map[string]struct {
+		token      string
+		statistics policies.PoliciesStatistics
+		err        error
+	}{
+		"retrieve all policies statistics summary": {
+			token: token,
+			statistics: policies.PoliciesStatistics{
+				TotalPolicies: 10,
+			},
+			err: nil,
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			statistics, err := svc.PoliciesStatistics(context.Background(), tc.token)
+			assert.Equal(t, statistics, tc.statistics, fmt.Sprintf("%s: expected %+v got %+v", desc, tc.statistics, statistics))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
+		})
 	}
 }
 

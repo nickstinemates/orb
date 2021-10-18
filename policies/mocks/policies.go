@@ -58,8 +58,8 @@ func (m *mockPoliciesRepository) DeletePolicy(ctx context.Context, ownerID strin
 
 func (m *mockPoliciesRepository) RetrieveDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 	var datasetList []policies.Dataset
-	for _, d := range m.ddb{
-		if d.PolicyID == policyID && d.MFOwnerID == ownerID{
+	for _, d := range m.ddb {
+		if d.PolicyID == policyID && d.MFOwnerID == ownerID {
 			datasetList = append(datasetList, d)
 		}
 	}
@@ -197,4 +197,16 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetsByOwner(ctx context.Context,
 		Datasets: datasetList,
 	}
 	return pageDataset, nil
+}
+
+func (m *mockPoliciesRepository) RetrieveTotalPoliciesByOwner(ctx context.Context, owner string) (int, error) {
+	var count int
+
+	for _, v := range m.pdb {
+		if v.MFOwnerID == owner {
+			count += 1
+		}
+	}
+
+	return count, nil
 }

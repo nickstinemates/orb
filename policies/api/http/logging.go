@@ -242,6 +242,20 @@ func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return l.svc.ListDatasets(ctx, token, pm)
 }
 
+func (l loggingMiddleware) PoliciesStatistics(ctx context.Context, token string) (_ policies.PoliciesStatistics, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: policies_statistics",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: policies_statistics",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.PoliciesStatistics(ctx, token)
+}
+
 func NewLoggingMiddleware(svc policies.Service, logger *zap.Logger) policies.Service {
 	return &loggingMiddleware{logger, svc}
 }

@@ -185,3 +185,19 @@ type pageRes struct {
 	Order  string `json:"order"`
 	Dir    string `json:"direction"`
 }
+
+type policiesStatisticsRes struct {
+	TotalPolicies int `json:"total_policies"`
+}
+
+func (s policiesStatisticsRes) Code() int {
+	return http.StatusOK
+}
+
+func (s policiesStatisticsRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s policiesStatisticsRes) Empty() bool {
+	return false
+}

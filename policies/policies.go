@@ -50,6 +50,10 @@ type PageDataset struct {
 	Datasets []Dataset
 }
 
+type PoliciesStatistics struct {
+	TotalPolicies int
+}
+
 type Service interface {
 	// AddPolicy creates new agent Policy
 	AddPolicy(ctx context.Context, token string, p Policy, format string, policyData string) (Policy, error)
@@ -97,6 +101,9 @@ type Service interface {
 
 	// ListDatasets retrieve a list of Dataset by owner
 	ListDatasets(ctx context.Context, token string, pm PageMetadata) (PageDataset, error)
+
+	// PoliciesStatistics
+	PoliciesStatistics(ctx context.Context, owner string) (PoliciesStatistics, error)
 }
 
 type Repository interface {
@@ -143,4 +150,7 @@ type Repository interface {
 
 	// RetrieveAllDatasetsByOwner retrieves the subset of Datasets owned by the specified user
 	RetrieveAllDatasetsByOwner(ctx context.Context, ownerID string, pm PageMetadata) (PageDataset, error)
+
+	// RetrieveTotalPoliciesByOwner
+	RetrieveTotalPoliciesByOwner(ctx context.Context, owner string) (int, error)
 }

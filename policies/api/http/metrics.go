@@ -82,6 +82,10 @@ func (m metricsMiddleware) ListDatasets(ctx context.Context, token string, pm po
 	return m.svc.ListDatasets(ctx, token, pm)
 }
 
+func (m metricsMiddleware) PoliciesStatistics(ctx context.Context, token string) (policies.PoliciesStatistics, error) {
+	return m.svc.PoliciesStatistics(ctx, token)
+}
+
 // MetricsMiddleware instruments core service by tracking request count and latency.
 func MetricsMiddleware(svc policies.Service, counter metrics.Counter, latency metrics.Histogram) policies.Service {
 	return &metricsMiddleware{

@@ -199,3 +199,15 @@ func (req updateDatasetReq) validate() error {
 
 	return nil
 }
+
+type policiesStatisticsReq struct {
+	token string
+}
+
+func (req policiesStatisticsReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	return nil
+}

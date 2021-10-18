@@ -105,6 +105,12 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc policies.Service
 		decodeAddDatasetRequest,
 		types.EncodeResponse,
 		opts...))
+	r.Get("/policies/statistics/", kithttp.NewServer(
+		kitot.TraceServer(tracer, "sink_statistics")(policiesStatisticsEndpoint(svc)),
+		decodePoliciesStatistics,
+		types.EncodeResponse,
+		opts...,
+	))
 
 	r.GetFunc("/version", orb.Version(svcName))
 	r.Handle("/metrics", promhttp.Handler())
@@ -227,6 +233,11 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 		},
 	}
 
+	return req, nil
+}
+
+func decodePoliciesStatistics(_ context.Context, r *http.Request) (interface{}, error) {
+	req := policiesStatisticsReq{token: r.Header.Get("Authorization")}
 	return req, nil
 }
 

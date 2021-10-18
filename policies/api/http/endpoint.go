@@ -375,3 +375,21 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 		return res, nil
 	}
 }
+
+func policiesStatisticsEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(policiesStatisticsReq)
+		if err := req.validate(); err != nil {
+			return policiesStatisticsRes{}, err
+		}
+
+		statistics, err := svc.PoliciesStatistics(ctx, req.token)
+		if err != nil {
+			return policiesStatisticsRes{}, err
+		}
+
+		return policiesStatisticsRes{
+			TotalPolicies: statistics.TotalPolicies,
+		}, nil
+	}
+}
