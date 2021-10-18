@@ -217,14 +217,16 @@ func (m *mockPoliciesRepository) RetrieveTotalDatasetByPolicy(ctx context.Contex
 		count int
 	)
 
+	var agID string
 	for _, v := range m.ddb {
 		if v.MFOwnerID == owner {
 			count += 1
+		 	agID = v.PolicyID
 		}
 	}
 	dt := policies.DatasetPerPolicy{
-		PolicyID:   m.ddb[owner].PolicyID,
-		TotalDatasets:   count,
+		PolicyID:      agID,
+		TotalDatasets: count,
 	}
 	dtPerPolicy = append(dtPerPolicy, dt)
 
@@ -237,13 +239,15 @@ func (m *mockPoliciesRepository) RetrieveTotalDatasetByAgentGroup(ctx context.Co
 		count int
 	)
 
+	var plID string
 	for _, v := range m.ddb {
 		if v.MFOwnerID == owner {
 			count += 1
+			plID = v.AgentGroupID
 		}
 	}
 	dt := policies.DatasetPerAgentGroup{
-		AgentGroupID:  m.ddb[owner].AgentGroupID,
+		AgentGroupID:  plID,
 		TotalDatasets: count,
 	}
 	dtPerAgGroup = append(dtPerAgGroup, dt)

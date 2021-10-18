@@ -334,8 +334,20 @@ func (s policiesService) DatasetsStatistics(ctx context.Context, token string) (
 		return DatasetStatistics{}, err
 	}
 
+	dtPerAgGroup, err := s.repo.RetrieveTotalDatasetByAgentGroup(ctx, res.GetId())
+	if err != nil{
+		return DatasetStatistics{}, err
+	}
+
+	dtPerPolicy, err := s.repo.RetrieveTotalDatasetByPolicy(ctx, res.GetId())
+	if err != nil{
+		return DatasetStatistics{}, err
+	}
+
 	statistic := DatasetStatistics{
-		TotalDatasets:   total,
+		TotalDatasets:        total,
+		DatasetPerAgentGroup: dtPerAgGroup,
+		DatasetPerPolicy:     dtPerPolicy,
 	}
 
 	return statistic, nil

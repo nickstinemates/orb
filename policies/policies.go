@@ -41,7 +41,9 @@ type PolicyInDataset struct {
 }
 
 type DatasetStatistics struct {
-	TotalDatasets   int
+	TotalDatasets        int
+	DatasetPerPolicy     []DatasetPerPolicy
+	DatasetPerAgentGroup []DatasetPerAgentGroup
 }
 
 type DatasetPerPolicy struct {
