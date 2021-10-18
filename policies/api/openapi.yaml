@@ -253,6 +253,25 @@ paths:
           description: Mising or invalid content type.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /policies/dataset/statistics/:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    get:
+      summary: 'Get all Datasets statistics'
+      operationId: datasetsStatistics
+      tags:
+        - agents
+      responses:
+        '200':
+          $ref: "#/components/responses/DatasetStatisticsObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   requestBodies:
     PolicyCreateReq:
@@ -406,6 +425,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/DatasetPageSchema"
+    DatasetStatisticsObjRes:
+      description: Dataset Statistics object
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DatasetStatisticsObjSchema"
   schemas:
     PolicyUpdateReqSchemaJson:
       type: object
@@ -768,6 +793,36 @@ components:
           readOnly: true
           format: date-time
           description: Timestamp of creation
+    DatasetStatisticsObjSchema:
+      type: object
+      properties:
+        datasetPerPolicy:
+          type: array
+          items:
+            type: object
+            properties:
+              policyID:
+                type: string
+                format: uuid
+                description: Unique identifier (UUID) of an agent_policy
+              totalDatasets:
+                type: integer
+                description: number of datasets using this policy
+        datasetPerAgentGroup:
+          type: array
+          items:
+            type: object
+            properties:
+              agentGroupID:
+                type: string
+                format: uuid
+                description: Unique identifier (UUID) of an agent_group
+              totalDatasets:
+                type: integer
+                description: number of datasets using this agent group
+        total_datasets:
+          type: integer
+          description: Total of datasets of the user
     Error:
       type: object
       required:
