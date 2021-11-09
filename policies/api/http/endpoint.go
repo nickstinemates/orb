@@ -10,6 +10,8 @@ package http
 
 import (
 	"context"
+	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/policies"
@@ -67,6 +69,11 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
+		policyYaml, err := yaml.Marshal(&policy.Policy)
+		if err != nil {
+			fmt.Sprintf("error while json to yaml conversion: %s", err)
+		}
+
 		res := policyRes{
 			ID:          policy.ID,
 			Name:        policy.Name.String(),
@@ -75,6 +82,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend:     policy.Backend,
 			Policy:      policy.Policy,
 			Version:     policy.Version,
+			PolicyData:  string(policyYaml),
 		}
 		return res, nil
 	}
@@ -103,12 +111,18 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policies: []policyRes{},
 		}
 		for _, ag := range page.Policies {
+			policyYaml, err := yaml.Marshal(ag)
+			if err != nil {
+				fmt.Sprintf("error while json to yaml convertion: %s", err)
+			}
+
 			view := policyRes{
 				ID:          ag.ID,
 				Name:        ag.Name.String(),
 				Description: ag.Description,
 				Version:     ag.Version,
 				Backend:     ag.Backend,
+				PolicyData:  string(policyYaml),
 			}
 			res.Policies = append(res.Policies, view)
 		}
