@@ -441,8 +441,7 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
-#@smoke
-@MUTE
+@smoke
 Scenario: Remove one of the groups that applies the same policy on the agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -451,8 +450,10 @@ Scenario: Remove one of the groups that applies the same policy on the agent
         And this agent's heartbeat shows that 2 groups are matching the agent
         And that a sink already exists
         And a new policy is created using: handler=dns, description='policy_dns_2_groups'
-        And 2 new dataset is created using the policy, an existing group and 1 sink
-        And this agent's heartbeat shows that 1 policies are applied and 1 has status running
+        And 1 new dataset is created using the policy, first group and 1 sink
+        And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And 1 new dataset is created using the policy, second group and 1 sink
+        And this agent's heartbeat shows that 1 policies are applied and all has status running
         And 2 datasets are linked with each policy on agent's heartbeat within 10 seconds
     When the group to which the agent is linked is removed
     Then this agent's heartbeat shows that 1 groups are matching the agent
